@@ -1,7 +1,11 @@
 <template>
   <div class="dictionary-node">
     <mu-breadcrumbs>
-      <mu-breadcrumbs-item v-for="item in lastNodes" :key="item.index" :disabled="false">{{item.text}}</mu-breadcrumbs-item>
+      <mu-breadcrumbs-item
+        v-for="item in lastNodes"
+        :key="item.text"
+        :disabled="item.disabled"
+        @click="jumpBackNode(item.step)">{{item.text}}</mu-breadcrumbs-item>
     </mu-breadcrumbs>
     <mu-list>
       <mu-list-item button v-for="node in children" :key="node.text" @click="enterNode(node)">
@@ -23,14 +27,19 @@
           <mu-radio v-model="addNodeForm.type" value="condition" label="条件"></mu-radio>
           <mu-radio v-model="addNodeForm.type" value="result" label="结果"></mu-radio>
         </mu-form-item>
-        <mu-form-item prop="text" label="判断条件" v-show="addNodeForm.type === 'result'">
+        <mu-form-item prop="text" label="判断条件">
           <mu-text-field v-modle="addNodeForm.text" :max-length="100"></mu-text-field>
         </mu-form-item>
-        <mu-form-item prop="name" label="名称">
+        <mu-form-item prop="name" label="名称" v-show="addNodeForm.type === 'result'">
           <mu-text-field v-modle="addNodeForm.name" :max-length="50"></mu-text-field>
         </mu-form-item>
-        <mu-form-item prop="desc" label="描述">
-          <mu-text-field v-modle="addNodeForm.desc" :max-length="200" multi-line :rows="1" :rowsMax="3"></mu-text-field>
+        <mu-form-item prop="desc" label="描述" v-show="addNodeForm.type === 'result'">
+          <mu-text-field
+            v-modle="addNodeForm.desc"
+            :max-length="200"
+            multi-line
+            :rows="1"
+            :rowsMax="3"></mu-text-field>
         </mu-form-item>
       </mu-form>
       <mu-flex class="add-dic-buttons" justify-content="end">
@@ -38,13 +47,94 @@
         <mu-button color="primary" @click="confirmAddDic">确定</mu-button>
       </mu-flex>
     </mu-dialog>
+    <mu-dialog title="查看结论" width="360" :open.sync="showCheckNode">
+      <mu-form label-position="right" label-width="100">
+        <mu-form-item label="判断条件">
+          <span>{{checkNodeForm.text}}</span>
+        </mu-form-item>
+        <mu-form-item label="名称">
+          <span>{{checkNodeForm.name}}</span>
+        </mu-form-item>
+        <mu-form-item abel="描述">
+          <p>{{checkNodeForm.desc}}</p>
+        </mu-form-item>
+      </mu-form>
+    </mu-dialog>
   </div>
 </template>
 
 <script>
 export default {
+  data() {
+    return {
+      showAddNode: false,
+      showCheckNode: false,
+      addNodeForm: {
+        type: 'condition',
+        text: '',
+        name: '',
+        desc: '',
+      },
+      checkNodeForm: {
+        text: '',
+        name: '',
+        desc: '',
+      },
+    };
+  },
+  props: {
+    dicName: {
+      type: String,
+      required: true,
+    },
+  },
+  computed: {
+    lastNodes() {
+      return this.$store.getters.lastNodes(this.dicName);
+    },
+    children() {
+      return this.$store.getters.nowNode(this.dicName).children;
+    },
+  },
+  methods: {
+    jumpBackNode(step) {
+      return this.$store.commit('jumpBackNode', { dicName: this.dicName, step });
+    },
+    enterNode(node) {
+      const { type, text, name, desc } = node;
+      if (type === 'condition') {
+        this.$store.commit('enterNode', { dicName: this.dicName, node });
+        return;
+      }
+      this.checkNodeForm = {
+        text, name, desc,
+      };
+      this.showCheckNode = true;
+    },
+    judgeNodeType({ type }) {
+      if (type === 'condition') {
+        return 'list';
+      }
+      return 'note';
+    },
+    showAddNodeDialog() {
+      this.addNodeForm = {
+        type: 'condition',
+        text: '',
+        name: '',
+        desc: '',
+      };
+      this.showAddNode = true;
+    },
+    cancelAddDic() {
+      this.showAddNode = false;
+    },
+    confirmAddDic() {
+      // const { type, text, name, desc } = this.addNodeForm;
 
-}
+    },
+  },
+};
 </script>
 
 <style>
