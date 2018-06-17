@@ -1,6 +1,7 @@
 <template>
   <div class="hello">
     <img src="../assets/logo.png">
+    请点击左侧列表切换字典
   </div>
 </template>
 

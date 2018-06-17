@@ -16,10 +16,14 @@ export default new Vuex.Store({
           ({ text, step: index + 1, disabled: index + 1 === nodesLength }));
       }),
     nowNode: state => (dicName => state.dics[dicName].slice(-1)[0]),
+    dicExists: state => (dicName => !!state.dics[dicName]),
   },
   mutations: {
-    enterDic(state, { dicName, dic }) {
+    initDic(state, { dicName, dic }) {
       state.dics[dicName] = [dic];
+    },
+    enterDic(state, { dicName }) {
+      state.dics[dicName].splice(1);
     },
     enterNode(state, { dicName, node }) {
       state.dics[dicName].push(node);

@@ -7,7 +7,7 @@
       Ricardo Klose的字典咯
     </mu-appbar>
     <mu-list class="app-sidemenu">
-      <mu-list-item button v-for="dic in nowDics" :key="dic.name" @click="openDic(dic)">
+      <mu-list-item button v-for="dic in nowDics" :key="dic.name" :to="`/dics/${dic.path}`" replace>
         <mu-list-item-action>
           <mu-icon value="book"></mu-icon>
         </mu-list-item-action>
@@ -25,8 +25,10 @@
       <mu-text-field
         placeholder="最多不超过30个字"
         :max-length="30"
-        v-model="dicName"></mu-text-field>
-      <mu-alert color="error" delete :show.sync="dicNameErrored">字典名称不能为空</mu-alert>
+        v-model="addDicForm.dicName"></mu-text-field>
+      <mu-alert
+        color="error"
+        :show.sync="addDicForm.dicNameErrored">{{addDicForm.dicNameErrMessage}}</mu-alert>
       <mu-flex class="add-dic-buttons" justify-content="end">
         <mu-button @click="cancelAddDic">取消</mu-button>
         <mu-button color="primary" @click="confirmAddDic">确定</mu-button>
@@ -48,10 +50,13 @@ export default {
       errMsg: '',
       showSuc: false,
       showErr: false,
-      dicName: '',
+      addDicForm: {
+        dicName: '',
+        dicNameErrored: false,
+        dicNameErrMessage: '',
+      },
       showAddDic: false,
       nowDics: [],
-      dicNameErrored: false,
     };
   },
   methods: {
@@ -63,15 +68,25 @@ export default {
       this.showAddDic = false;
     },
     confirmAddDic() {
-      if (!this.dicName) {
-        this.dicNameErrored = true;
+      const { dicName } = this.addDicForm;
+      if (!dicName) {
+        this.addDicForm.dicNameErrored = true;
+        this.addDicForm.dicNameErrMessage = '字典名称不能为空';
         return;
       }
-      this.nowDics.push({
+      if (this.$store.getters.dicExists(dicName)) {
+        this.addDicForm.dicNameErrored = true;
+        this.addDicForm.dicNameErrMessage = '字典名称已存在';
+        return;
+      }
+      const node = {
         type: 'root',
         children: [],
-        name: this.dicName,
-      });
+        name: dicName,
+        path: encodeURIComponent(dicName),
+      };
+      this.nowDics.push(node);
+      this.$store.commit('initDic', { dicName, dic: node });
       this.showAddDic = false;
     },
     say() {
@@ -85,9 +100,9 @@ export default {
           this.showErr = true;
         });
     },
-    openDic(dic) {
-      console.log(dic);
-    },
+    // openDic(dic) {
+    //   console.log(dic);
+    // },
   },
 };
 </script>
@@ -110,6 +125,13 @@ export default {
     left: 0;
     width: 180px;
     background-color: #80cbc4;
+  }
+  .app-content {
+    position: absolute;
+    top: 64px;
+    left: 180px;
+    right: 0;
+    bottom: 0;
   }
 }
 .add-dic-buttons {

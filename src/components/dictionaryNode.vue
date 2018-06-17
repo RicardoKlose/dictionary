@@ -22,26 +22,29 @@
       </mu-list-item>
     </mu-list>
     <mu-dialog title="添加节点" width="360" :open.sync="showAddNode">
-      <mu-form :model="addNodeForm" label-position="right" label-width="100">
+      <mu-form ref="addForm" :model="addNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="type" label="节点类型">
           <mu-radio v-model="addNodeForm.type" value="condition" label="条件"></mu-radio>
           <mu-radio v-model="addNodeForm.type" value="result" label="结果"></mu-radio>
         </mu-form-item>
         <mu-form-item prop="text" label="判断条件">
-          <mu-text-field v-modle="addNodeForm.text" :max-length="100"></mu-text-field>
+          <mu-text-field v-model="addNodeForm.text" :max-length="100"></mu-text-field>
         </mu-form-item>
         <mu-form-item prop="name" label="名称" v-show="addNodeForm.type === 'result'">
-          <mu-text-field v-modle="addNodeForm.name" :max-length="50"></mu-text-field>
+          <mu-text-field v-model="addNodeForm.name" :max-length="50"></mu-text-field>
         </mu-form-item>
         <mu-form-item prop="desc" label="描述" v-show="addNodeForm.type === 'result'">
           <mu-text-field
-            v-modle="addNodeForm.desc"
+            v-model="addNodeForm.desc"
             :max-length="200"
             multi-line
             :rows="1"
             :rowsMax="3"></mu-text-field>
         </mu-form-item>
       </mu-form>
+      <mu-alert color="error" v-show="addNodeForm.showErrAlert">
+        <mu-icon left value="warning"></mu-icon>{{addNodeForm.errMessage}}
+      </mu-alert>
       <mu-flex class="add-dic-buttons" justify-content="end">
         <mu-button @click="cancelAddDic">取消</mu-button>
         <mu-button color="primary" @click="confirmAddDic">确定</mu-button>
@@ -74,6 +77,8 @@ export default {
         text: '',
         name: '',
         desc: '',
+        showErrAlert: false,
+        errMessage: '',
       },
       checkNodeForm: {
         text: '',
@@ -123,6 +128,8 @@ export default {
         text: '',
         name: '',
         desc: '',
+        showErrAlert: false,
+        errMessage: '',
       };
       this.showAddNode = true;
     },
@@ -130,8 +137,26 @@ export default {
       this.showAddNode = false;
     },
     confirmAddDic() {
-      // const { type, text, name, desc } = this.addNodeForm;
-
+      const { type, text, name, desc } = this.addNodeForm;
+      if (!text) {
+        this.showErrAlert('判断条件不能为空');
+        return;
+      }
+      if (type === 'condition') {
+        this.$store.commit('addNodeToChildren', { dicName: this.dicName, node: { type, text, children: [] } });
+        this.showAddNode = false;
+        return;
+      }
+      if (!name) {
+        this.showErrAlert('判断条件不能为空');
+        return;
+      }
+      this.$store.commit('addNodeToChildren', { dicName: this.dicName, node: { type, text, name, desc } });
+      this.showAddNode = false;
+    },
+    showErrAlert(msg) {
+      this.addNodeForm.errMessage = msg;
+      this.addNodeForm.showErrAlert = true;
     },
   },
 };
