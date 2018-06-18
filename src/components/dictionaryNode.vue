@@ -1,12 +1,13 @@
 <template>
   <div class="dictionary-node">
-    <mu-breadcrumbs>
-      <mu-breadcrumbs-item
+    <ul class="mu-breadcrumbs">
+      <li :class="{ 'mu-breadcrumbs-item': true, 'is-disabled': item.disabled }"
         v-for="item in lastNodes"
         :key="item.text"
-        :disabled="item.disabled"
-        @click="jumpBackNode(item.step)">{{item.text}}</mu-breadcrumbs-item>
-    </mu-breadcrumbs>
+        @click="jumpBackNode(item.step, item.disabled)">
+        <a href="javascript:void(0)">{{item.text}}</a>
+      </li>
+    </ul>
     <mu-list>
       <mu-list-item button v-for="node in children" :key="node.text" @click="enterNode(node)">
         <mu-list-item-action>
@@ -51,14 +52,14 @@
       </mu-flex>
     </mu-dialog>
     <mu-dialog title="查看结论" width="360" :open.sync="showCheckNode">
-      <mu-form label-position="right" label-width="100">
-        <mu-form-item label="判断条件">
+      <mu-form :model="checkNodeForm" label-position="right" label-width="100">
+        <mu-form-item prop="text" label="判断条件">
           <span>{{checkNodeForm.text}}</span>
         </mu-form-item>
-        <mu-form-item label="名称">
+        <mu-form-item prop="name" label="名称">
           <span>{{checkNodeForm.name}}</span>
         </mu-form-item>
-        <mu-form-item abel="描述">
+        <mu-form-item prop="desc" label="描述">
           <p>{{checkNodeForm.desc}}</p>
         </mu-form-item>
       </mu-form>
@@ -102,8 +103,11 @@ export default {
     },
   },
   methods: {
-    jumpBackNode(step) {
-      return this.$store.commit('jumpBackNode', { dicName: this.dicName, step });
+    jumpBackNode(step, disabled = false) {
+      if (disabled) {
+        return;
+      }
+      this.$store.commit('jumpBackNode', { dicName: this.dicName, step });
     },
     enterNode(node) {
       const { type, text, name, desc } = node;
@@ -162,6 +166,17 @@ export default {
 };
 </script>
 
-<style>
-
+<style lang="less">
+  li.mu-breadcrumbs-item {
+    &.is-disabled > a {
+      cursor: initial;
+      color: #000000;
+    }
+    &+ li.mu-breadcrumbs-item:before {
+      content: '/';
+      margin: 0 5px;
+      color: #000000;
+      user-select: none;
+    }
+  }
 </style>

@@ -20,7 +20,7 @@ export default new Vuex.Store({
   },
   mutations: {
     initDic(state, { dicName, dic }) {
-      state.dics[dicName] = [dic];
+      Vue.set(state.dics, dicName, [dic]);
     },
     enterDic(state, { dicName }) {
       state.dics[dicName].splice(1);

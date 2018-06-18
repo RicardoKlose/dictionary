@@ -7,7 +7,13 @@
       Ricardo Klose的字典咯
     </mu-appbar>
     <mu-list class="app-sidemenu">
-      <mu-list-item button v-for="dic in nowDics" :key="dic.name" :to="`/dics/${dic.path}`" replace>
+      <mu-list-item
+        button
+        v-for="dic in nowDics"
+        :key="dic.name"
+        :to="`/dics/${dic.path}`"
+        replace
+        active-class="active-list">
         <mu-list-item-action>
           <mu-icon value="book"></mu-icon>
         </mu-list-item-action>
@@ -28,7 +34,7 @@
         v-model="addDicForm.dicName"></mu-text-field>
       <mu-alert
         color="error"
-        :show.sync="addDicForm.dicNameErrored">{{addDicForm.dicNameErrMessage}}</mu-alert>
+        v-show="addDicForm.dicNameErrored">{{addDicForm.dicNameErrMessage}}</mu-alert>
       <mu-flex class="add-dic-buttons" justify-content="end">
         <mu-button @click="cancelAddDic">取消</mu-button>
         <mu-button color="primary" @click="confirmAddDic">确定</mu-button>
@@ -61,7 +67,11 @@ export default {
   },
   methods: {
     showAddDialog() {
-      this.dicName = '';
+      this.addDicForm = {
+        dicName: '',
+        dicNameErrored: false,
+        dicNameErrMessage: '',
+      };
       this.showAddDic = true;
     },
     cancelAddDic() {
@@ -83,6 +93,7 @@ export default {
         type: 'root',
         children: [],
         name: dicName,
+        text: dicName,
         path: encodeURIComponent(dicName),
       };
       this.nowDics.push(node);
@@ -125,6 +136,9 @@ export default {
     left: 0;
     width: 180px;
     background-color: #80cbc4;
+    .active-list {
+      background-color: #2196f3;
+    }
   }
   .app-content {
     position: absolute;

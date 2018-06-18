@@ -1778,8 +1778,8 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
 dayjs@^1.6.5:
-  version "1.6.5"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.6.5.tgz#d7c18785990f6d839161b84f4cc924d9324dfa33"
+  version "1.6.9"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.6.9.tgz#b3568220ac9d71fc295392aaaa5cf9e0e00232f2"
 
 de-indent@^1.0.2:
   version "1.0.2"
@@ -4058,12 +4058,13 @@ multicast-dns@^6.0.1:
     thunky "^1.0.2"
 
 muse-ui@^3.0.0-beta.2:
-  version "3.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/muse-ui/-/muse-ui-3.0.0-beta.2.tgz#12073c442a2aa7e290f75d06ccde30d5241c79f7"
+  version "3.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/muse-ui/-/muse-ui-3.0.0-rc.1.tgz#d49c6548d2eda5f38013c5c0c5811e346567eac5"
   dependencies:
     dayjs "^1.6.5"
     keycode "^2.1.9"
     normalize-wheel "^1.0.1"
+    resize-observer-polyfill "^1.5.0"
 
 mute-stream@0.0.7:
   version "0.0.7"
@@ -5295,6 +5296,10 @@ require-uncached@^1.0.3:
 requires-port@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
+
+resize-observer-polyfill@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/resize-observer-polyfill/-/resize-observer-polyfill-1.5.0.tgz#660ff1d9712a2382baa2cad450a4716209f9ca69"
 
 resolve-cwd@^2.0.0:
   version "2.0.0"
