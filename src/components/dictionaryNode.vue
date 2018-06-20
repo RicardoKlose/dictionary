@@ -8,7 +8,7 @@
         <a href="javascript:void(0)">{{item.text}}</a>
       </li>
     </ul>
-    <mu-list>
+    <!-- <mu-list>
       <mu-list-item button v-for="node in children" :key="node.text" @click="enterNode(node)">
         <mu-list-item-action>
           <mu-icon :value="judgeNodeType(node)"></mu-icon>
@@ -21,7 +21,21 @@
         </mu-list-item-action>
         <mu-list-item-title>添加节点</mu-list-item-title>
       </mu-list-item>
-    </mu-list>
+    </mu-list> -->
+    <mu-data-table :columns="nodeColumns" :data="children">
+      <template slot-scope="scope">
+        <td><mu-icon :value="judgeNodeType(scope.row)"></mu-icon></td>
+        <td>
+          <a
+            class="node-click-text"
+            href="javascript:void(0)"
+            @click="enterNode(scope.row)">
+            {{scope.row.text}}
+          </a>
+        </td>
+        <td>{{scope.row.fat}}</td>
+      </template>
+    </mu-data-table>
     <mu-dialog title="添加节点" width="360" :open.sync="showAddNode">
       <mu-form ref="addForm" :model="addNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="type" label="节点类型">
