@@ -33,7 +33,14 @@
             {{scope.row.text}}
           </a>
         </td>
-        <td>{{scope.row.fat}}</td>
+        <td>
+          <mu-button flat @click="editNode(scope.row)">
+            编辑<mu-icon :size="24" value="edit" right></mu-icon>
+          </mu-button>
+          <mu-button flat @click="removeNode(scope.row)">
+            删除<mu-icon :size="24" value="delete" right></mu-icon>
+          </mu-button>
+        </td>
       </template>
     </mu-data-table>
     <mu-dialog title="添加节点" width="360" :open.sync="showAddNode">
@@ -60,9 +67,41 @@
       <mu-alert color="error" v-show="addNodeForm.showErrAlert">
         <mu-icon left value="warning"></mu-icon>{{addNodeForm.errMessage}}
       </mu-alert>
-      <mu-flex class="add-dic-buttons" justify-content="end">
+      <mu-flex class="edit-dic-buttons" justify-content="end">
         <mu-button @click="cancelAddDic">取消</mu-button>
         <mu-button color="primary" @click="confirmAddDic">确定</mu-button>
+      </mu-flex>
+    </mu-dialog>
+    <mu-dialog title="编辑节点" width="360" :open.sync="showEditNode">
+      <mu-form ref="editForm" :model="editNodeForm" label-position="right" label-width="100">
+        <mu-form-item prop="text" label="判断条件">
+          <mu-text-field v-model="editNodeForm.text" :max-length="100"></mu-text-field>
+        </mu-form-item>
+        <mu-form-item prop="name" label="名称" v-show="editNodeForm.type === 'result'">
+          <mu-text-field v-model="editNodeForm.name" :max-length="50"></mu-text-field>
+        </mu-form-item>
+        <mu-form-item prop="desc" label="描述" v-show="editNodeForm.type === 'result'">
+          <mu-text-field
+            v-model="editNodeForm.desc"
+            :max-length="200"
+            multi-line
+            :rows="1"
+            :rowsMax="3"></mu-text-field>
+        </mu-form-item>
+      </mu-form>
+      <mu-alert color="error" v-show="editNodeForm.showErrAlert">
+        <mu-icon left value="warning"></mu-icon>{{editNodeForm.errMessage}}
+      </mu-alert>
+      <mu-flex class="edit-dic-buttons" justify-content="end">
+        <mu-button @click="cancelEditDic">取消</mu-button>
+        <mu-button color="primary" @click="confirmEditDic">确定</mu-button>
+      </mu-flex>
+    </mu-dialog>
+    <mu-dialog title="删除节点" width="360" :open.sync="showRemoveNode">
+      确认删除节点“{{removeNodeForm.text}}”？
+      <mu-flex class="edit-dic-buttons" justify-content="end">
+        <mu-button @click="cancelRemoveDic">取消</mu-button>
+        <mu-button color="primary" @click="confirmRemoveDic">确定</mu-button>
       </mu-flex>
     </mu-dialog>
     <mu-dialog title="查看结论" width="360" :open.sync="showCheckNode">
@@ -86,6 +125,8 @@ export default {
   data() {
     return {
       showAddNode: false,
+      showEditNode: false,
+      showRemoveNode: false,
       showCheckNode: false,
       addNodeForm: {
         type: 'condition',
@@ -94,6 +135,19 @@ export default {
         desc: '',
         showErrAlert: false,
         errMessage: '',
+      },
+      editNodeForm: {
+        node: null,
+        type: 'condition',
+        text: '',
+        name: '',
+        desc: '',
+        showErrAlert: false,
+        errMessage: '',
+      },
+      removeNodeForm: {
+        node: null,
+        text: ''
       },
       checkNodeForm: {
         text: '',
@@ -156,25 +210,108 @@ export default {
     },
     confirmAddDic() {
       const { type, text, name, desc } = this.addNodeForm;
+      text = text.trim();
       if (!text) {
-        this.showErrAlert('判断条件不能为空');
+        this.showErrAlert('add', '判断条件不能为空');
         return;
       }
       if (type === 'condition') {
-        this.$store.commit('addNodeToChildren', { dicName: this.dicName, node: { type, text, children: [] } });
+        this.$store.commit('addNodeToChildren', {
+          dicName: this.dicName,
+          node: {
+            type, text, children: []
+          }
+        });
         this.showAddNode = false;
         return;
       }
+      name = name.trim();
+      desc = desc.trim();
       if (!name) {
-        this.showErrAlert('判断条件不能为空');
+        this.showErrAlert('add', '名称不能为空');
         return;
       }
-      this.$store.commit('addNodeToChildren', { dicName: this.dicName, node: { type, text, name, desc } });
+      this.$store.commit('addNodeToChildren', {
+        dicName: this.dicName,
+        node: {
+          type, text, name, desc
+        }
+      });
       this.showAddNode = false;
     },
-    showErrAlert(msg) {
-      this.addNodeForm.errMessage = msg;
-      this.addNodeForm.showErrAlert = true;
+    showEditNodeDialog(node) {
+      const { type, text, name = '', desc = '' } = node;
+      this.editNodeForm = {
+        node,
+        type,
+        text,
+        name,
+        desc,
+        showErrAlert: false,
+        errMessage: '',
+      };
+      this.showEditNode = true;
+    },
+    cancelEditDic() {
+      this.showEditNode = false;
+    },
+    confirmEditDic() {
+      const { type, text, name, desc } = this.editNodeForm;
+      text = text.trim();
+      if (!text) {
+        this.showErrAlert('edit', '判断条件不能为空');
+        return;
+      }
+      if (type === 'condition') {
+        this.$store.commit('addNodeToChildren', {
+          editNode: node,
+          node: {
+            text
+          }
+        });
+        this.showEditNode = false;
+        return;
+      }
+      name = name.trim();
+      desc = desc.trim();
+      if (!name) {
+        this.showErrAlert('edit', '名称不能为空');
+        return;
+      }
+      this.$store.commit('editNode', {
+        editNode: node,
+        node: {
+          text, name, desc
+        }
+      });
+      this.showEditNode = false;
+    },
+    showRemoveNodeDialog(node) {
+      this.removeNodeForm = {
+        node,
+        text: node.text,
+      };
+      this.showRemoveNode = true;
+    },
+    cancelAddDic() {
+      this.showRemoveNode = false;
+    },
+    confirmAddDic() {
+      const { node } = this.removeNodeForm;
+      this.$store.commit('removeNodeFromChildren', {
+        dicName: this.dicName,
+        node,
+      });
+      this.showRemoveNode = false;
+    },
+    showErrAlert(type, msg) {
+      if (type === 'add') {
+        this.addNodeForm.errMessage = msg;
+        this.addNodeForm.showErrAlert = true;
+      } else if (type === 'edit') {
+        this.editNodeForm.errMessage = msg;
+        this.editNodeForm.showErrAlert = true;
+      }
     },
   },
 };

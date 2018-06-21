@@ -51,6 +51,7 @@ export default {
   name: 'App',
   data() {
     return {
+      docked: isDesktop(),
       msg: 'Welcome to Your Vue.js App',
       dic: {},
       errMsg: '',
@@ -116,6 +117,15 @@ export default {
     // },
   },
 };
+
+
+function isDesktop () {
+  return window.innerWidth > 993;
+}
+
+function isMobile () {
+  return window.innerWidth < 660;
+}
 </script>
 
 <style lang="less">
