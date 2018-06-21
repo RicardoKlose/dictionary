@@ -22,27 +22,34 @@
         <mu-list-item-title>添加节点</mu-list-item-title>
       </mu-list-item>
     </mu-list> -->
-    <mu-data-table :columns="nodeColumns" :data="children">
+    <mu-data-table stripe border :columns="nodeColumns" :data="children" fit>
       <template slot-scope="scope">
-        <td><mu-icon :value="judgeNodeType(scope.row)"></mu-icon></td>
         <td>
           <a
             class="node-click-text"
             href="javascript:void(0)"
             @click="enterNode(scope.row)">
-            {{scope.row.text}}
+            <mu-icon :value="judgeNodeType(scope.row)"></mu-icon>{{scope.row.text}}
           </a>
         </td>
         <td>
-          <mu-button flat @click="editNode(scope.row)">
+          <mu-button flat @click="showEditNodeDialog(scope.row)">
             编辑<mu-icon :size="24" value="edit" right></mu-icon>
           </mu-button>
-          <mu-button flat @click="removeNode(scope.row)">
+          <mu-button flat @click="showRemoveNodeDialog(scope.row)">
             删除<mu-icon :size="24" value="delete" right></mu-icon>
           </mu-button>
         </td>
       </template>
     </mu-data-table>
+    <mu-button
+      class="add-node-fab-btn"
+      large
+      fab
+      color="red"
+      @click="showAddNodeDialog()">
+      <mu-icon value="add"></mu-icon>
+    </mu-button>
     <mu-dialog title="添加节点" width="360" :open.sync="showAddNode">
       <mu-form ref="addForm" :model="addNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="type" label="节点类型">
@@ -147,13 +154,17 @@ export default {
       },
       removeNodeForm: {
         node: null,
-        text: ''
+        text: '',
       },
       checkNodeForm: {
         text: '',
         name: '',
         desc: '',
       },
+      nodeColumns: [
+        { title: '判断条件' },
+        { title: '操作', width: 250 },
+      ],
     };
   },
   props: {
@@ -194,6 +205,18 @@ export default {
       }
       return 'note';
     },
+    judgeChildrenHasSame(propName, value, nowNode = null) {
+      let exists = false;
+      this.children.forEach((node) => {
+        if (node === nowNode) {
+          return;
+        }
+        if (node[propName] === value) {
+          exists = true;
+        }
+      });
+      return exists;
+    },
     showAddNodeDialog() {
       this.addNodeForm = {
         type: 'condition',
@@ -209,18 +232,26 @@ export default {
       this.showAddNode = false;
     },
     confirmAddDic() {
-      const { type, text, name, desc } = this.addNodeForm;
+      const { type } = this.addNodeForm;
+      let { text, name, desc } = this.addNodeForm;
       text = text.trim();
       if (!text) {
         this.showErrAlert('add', '判断条件不能为空');
         return;
       }
+      if (this.judgeChildrenHasSame('text', text)) {
+        this.showErrAlert('add', '判断条件已存在');
+        return;
+      }
       if (type === 'condition') {
-        this.$store.commit('addNodeToChildren', {
-          dicName: this.dicName,
-          node: {
-            type, text, children: []
-          }
+        this.$store.dispatch('nodeOperate', {
+          optName: 'addNodeToChildren',
+          payLoad: {
+            dicName: this.dicName,
+            node: {
+              type, text, children: [],
+            },
+          },
         });
         this.showAddNode = false;
         return;
@@ -231,11 +262,18 @@ export default {
         this.showErrAlert('add', '名称不能为空');
         return;
       }
-      this.$store.commit('addNodeToChildren', {
-        dicName: this.dicName,
-        node: {
-          type, text, name, desc
-        }
+      if (this.judgeChildrenHasSame('name', name)) {
+        this.showErrAlert('add', '名称已存在');
+        return;
+      }
+      this.$store.dispatch('nodeOperate', {
+        optName: 'addNodeToChildren',
+        payLoad: {
+          dicName: this.dicName,
+          node: {
+            type, text, name, desc,
+          },
+        },
       });
       this.showAddNode = false;
     },
@@ -256,18 +294,27 @@ export default {
       this.showEditNode = false;
     },
     confirmEditDic() {
-      const { type, text, name, desc } = this.editNodeForm;
+      const { node, type } = this.editNodeForm;
+      let { text, name, desc } = this.editNodeForm;
       text = text.trim();
       if (!text) {
         this.showErrAlert('edit', '判断条件不能为空');
         return;
       }
+      if (this.judgeChildrenHasSame('text', text, node)) {
+        this.showErrAlert('edit', '判断条件已存在');
+        return;
+      }
       if (type === 'condition') {
-        this.$store.commit('addNodeToChildren', {
-          editNode: node,
-          node: {
-            text
-          }
+        this.$store.dispatch('nodeOperate', {
+          optName: 'editNode',
+          payLoad: {
+            dicName: this.dicName,
+            nowNode: node,
+            node: {
+              text,
+            },
+          },
         });
         this.showEditNode = false;
         return;
@@ -278,11 +325,19 @@ export default {
         this.showErrAlert('edit', '名称不能为空');
         return;
       }
-      this.$store.commit('editNode', {
-        editNode: node,
-        node: {
-          text, name, desc
-        }
+      if (this.judgeChildrenHasSame('name', name, node)) {
+        this.showErrAlert('edit', '名称已存在');
+        return;
+      }
+      this.$store.dispatch('nodeOperate', {
+        optName: 'editNode',
+        payLoad: {
+          dicName: this.dicName,
+          nowNode: node,
+          node: {
+            text, name, desc,
+          },
+        },
       });
       this.showEditNode = false;
     },
@@ -293,14 +348,17 @@ export default {
       };
       this.showRemoveNode = true;
     },
-    cancelAddDic() {
+    cancelRemoveDic() {
       this.showRemoveNode = false;
     },
-    confirmAddDic() {
+    confirmRemoveDic() {
       const { node } = this.removeNodeForm;
-      this.$store.commit('removeNodeFromChildren', {
-        dicName: this.dicName,
-        node,
+      this.$store.dispatch('nodeOperate', {
+        optName: 'removeNodeFromChildren',
+        payLoad: {
+          dicName: this.dicName,
+          node,
+        },
       });
       this.showRemoveNode = false;
     },
@@ -329,5 +387,22 @@ export default {
       color: #000000;
       user-select: none;
     }
+  }
+  .node-click-text {
+    line-height: 36px;
+    font-size: 14px;
+    color: #2196f3;
+    &:hover {
+      text-decoration: underline;
+    }
+    .mu-icon {
+      vertical-align: top;
+      margin: 6px;
+    }
+  }
+  .add-node-fab-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
   }
 </style>

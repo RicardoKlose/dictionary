@@ -21,7 +21,7 @@ export default new Router({
       beforeEnter(to, from, next) {
         const { dicName } = to.params;
         if (!store.getters.dicExists(dicName)) {
-          return next(false);
+          return next('/');
         }
         return next((vm) => {
           vm.$store.commit('enterDic', { dicName });

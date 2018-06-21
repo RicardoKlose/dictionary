@@ -35,5 +35,47 @@ export default new Vuex.Store({
       const { children } = state.dics[dicName].slice(-1)[0];
       children.push(node);
     },
+    editNode(state, { dicName, nowNode, node }) {
+      const { children } = state.dics[dicName].slice(-1)[0];
+      const nodeIndex = children.indexOf(nowNode);
+      if (nodeIndex === -1) {
+        return;
+      }
+      const editNode = children[nodeIndex];
+      Object.entries(node).forEach(([key, value]) => {
+        editNode[key] = value;
+      });
+    },
+    removeNodeFromChildren(state, { dicName, node }) {
+      const { children } = state.dics[dicName].slice(-1)[0];
+      const nodeIndex = children.indexOf(node);
+      if (nodeIndex === -1) {
+        return;
+      }
+      children.splice(nodeIndex, 1);
+    },
+    saveDic(state) {
+      const dics = {};
+      Object.entries(state.dics).forEach(([name, [dic]]) => {
+        dics[name] = dic;
+      });
+      localStorage.setItem('lastDics', JSON.stringify(dics));
+    },
+  },
+  actions: {
+    nodeOperate({ commit }, { optName, payLoad }) {
+      commit(optName, payLoad);
+      commit('saveDic');
+    },
+    loadDic({ commit }) {
+      let lastDics = localStorage.getItem('lastDics');
+      if (!lastDics) {
+        return;
+      }
+      lastDics = JSON.parse(lastDics);
+      Object.entries(lastDics).forEach(([name, dic]) => {
+        commit('initDic', { dicName: name, dic });
+      });
+    },
   },
 });
