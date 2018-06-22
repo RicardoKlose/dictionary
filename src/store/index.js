@@ -19,6 +19,9 @@ export default new Vuex.Store({
     dicExists: state => (dicName => !!state.dics[dicName]),
   },
   mutations: {
+    initStore(state) {
+      state.dics = {};
+    },
     initDic(state, { dicName, dic }) {
       Vue.set(state.dics, dicName, [dic]);
     },
