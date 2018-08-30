@@ -38,6 +38,9 @@ export default new Vuex.Store({
       const { children } = state.dics[dicName].slice(-1)[0];
       children.push(node);
     },
+    editTitle(state, { dicName, title }) {
+      state.dics[dicName].slice(-1)[0].title = title;
+    },
     editNode(state, { dicName, nowNode, node }) {
       const { children } = state.dics[dicName].slice(-1)[0];
       const nodeIndex = children.indexOf(nowNode);

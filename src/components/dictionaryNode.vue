@@ -22,6 +22,7 @@
         <mu-list-item-title>添加节点</mu-list-item-title>
       </mu-list-item>
     </mu-list> -->
+    <h2 class="node-title" @click="showEditTitleDialog()">{{ thisTitle }}</h2>
     <mu-data-table stripe border :columns="nodeColumns" :data="children" fit>
       <template slot-scope="scope">
         <td>
@@ -50,11 +51,30 @@
       @click="showAddNodeDialog()">
       <mu-icon value="add"></mu-icon>
     </mu-button>
+
+    <mu-dialog title="编辑条件类型" width="360" :open.sync="showEditTitle">
+      请输入条件类型
+      <mu-text-field
+        placeholder="最多不超过30个字"
+        :max-length="30"
+        v-model="editTitleForm.title"></mu-text-field>
+      <mu-alert color="error" v-show="editTitleForm.showErrAlert">
+        <mu-icon left value="warning"></mu-icon>{{editTitleForm.errMessage}}
+      </mu-alert>
+      <mu-flex class="edit-dic-buttons" justify-content="end">
+        <mu-button @click="cancelEditTitle">取消</mu-button>
+        <mu-button color="primary" @click="confirmEditTitle">确定</mu-button>
+      </mu-flex>
+    </mu-dialog>
+
     <mu-dialog title="添加节点" width="360" :open.sync="showAddNode">
       <mu-form ref="addForm" :model="addNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="type" label="节点类型">
           <mu-radio v-model="addNodeForm.type" value="condition" label="条件"></mu-radio>
           <mu-radio v-model="addNodeForm.type" value="result" label="结果"></mu-radio>
+        </mu-form-item>
+        <mu-form-item prop="text" label="条件类型" v-show="addNodeForm.type === 'condition'">
+          <mu-text-field v-model="addNodeForm.title" :max-length="30"></mu-text-field>
         </mu-form-item>
         <mu-form-item prop="text" label="判断条件">
           <mu-text-field v-model="addNodeForm.text" :max-length="100"></mu-text-field>
@@ -79,8 +99,12 @@
         <mu-button color="primary" @click="confirmAddDic">确定</mu-button>
       </mu-flex>
     </mu-dialog>
+
     <mu-dialog title="编辑节点" width="360" :open.sync="showEditNode">
       <mu-form ref="editForm" :model="editNodeForm" label-position="right" label-width="100">
+        <mu-form-item prop="text" label="条件类型" v-show="editNodeForm.type === 'condition'">
+          <mu-text-field v-model="editNodeForm.title" :max-length="30"></mu-text-field>
+        </mu-form-item>
         <mu-form-item prop="text" label="判断条件">
           <mu-text-field v-model="editNodeForm.text" :max-length="100"></mu-text-field>
         </mu-form-item>
@@ -104,6 +128,7 @@
         <mu-button color="primary" @click="confirmEditDic">确定</mu-button>
       </mu-flex>
     </mu-dialog>
+
     <mu-dialog title="删除节点" width="360" :open.sync="showRemoveNode">
       确认删除节点“{{removeNodeForm.text}}”？
       <mu-flex class="edit-dic-buttons" justify-content="end">
@@ -131,12 +156,17 @@
 export default {
   data() {
     return {
+      showEditTitle: false,
       showAddNode: false,
       showEditNode: false,
       showRemoveNode: false,
       showCheckNode: false,
+      editTitleForm: {
+        title: '',
+      },
       addNodeForm: {
         type: 'condition',
+        title: '',
         text: '',
         name: '',
         desc: '',
@@ -146,6 +176,7 @@ export default {
       editNodeForm: {
         node: null,
         type: 'condition',
+        title: '',
         text: '',
         name: '',
         desc: '',
@@ -179,6 +210,12 @@ export default {
     },
     children() {
       return this.$store.getters.nowNode(this.dicName).children;
+    },
+    thisNode() {
+      return this.$store.getters.nowNode(this.dicName);
+    },
+    thisTitle() {
+      return this.thisNode.title || '默认条件类型';
     },
   },
   methods: {
@@ -217,9 +254,37 @@ export default {
       });
       return exists;
     },
+    showEditTitleDialog() {
+      this.editTitleForm = {
+        title: this.thisNode.title,
+        showErrAlert: false,
+        errMessage: '',
+      };
+      this.showEditTitle = true;
+    },
+    cancelEditTitle() {
+      this.showEditTitle = false;
+    },
+    confirmEditTitle() {
+      let { title } = this.editTitleForm;
+      title = title.trim();
+      if (!title) {
+        this.showErrAlert('title', '条件类型不能为空');
+        return;
+      }
+      this.$store.dispatch('nodeOperate', {
+        optName: 'editTitle',
+        payLoad: {
+          dicName: this.dicName,
+          title,
+        },
+      });
+      this.showEditTitle = false;
+    },
     showAddNodeDialog() {
       this.addNodeForm = {
         type: 'condition',
+        title: '',
         text: '',
         name: '',
         desc: '',
@@ -233,7 +298,7 @@ export default {
     },
     confirmAddDic() {
       const { type } = this.addNodeForm;
-      let { text, name, desc } = this.addNodeForm;
+      let { title, text, name, desc } = this.addNodeForm;
       text = text.trim();
       if (!text) {
         this.showErrAlert('add', '判断条件不能为空');
@@ -244,12 +309,17 @@ export default {
         return;
       }
       if (type === 'condition') {
+        title = title.trim();
+        // if (!title) {
+        //   this.showErrAlert('add', '条件类型不能为空');
+        //   return;
+        // }
         this.$store.dispatch('nodeOperate', {
           optName: 'addNodeToChildren',
           payLoad: {
             dicName: this.dicName,
             node: {
-              type, text, children: [],
+              title, type, text, children: [],
             },
           },
         });
@@ -278,10 +348,11 @@ export default {
       this.showAddNode = false;
     },
     showEditNodeDialog(node) {
-      const { type, text, name = '', desc = '' } = node;
+      const { title = '', type, text, name = '', desc = '' } = node;
       this.editNodeForm = {
         node,
         type,
+        title,
         text,
         name,
         desc,
@@ -295,7 +366,7 @@ export default {
     },
     confirmEditDic() {
       const { node, type } = this.editNodeForm;
-      let { text, name, desc } = this.editNodeForm;
+      let { title, text, name, desc } = this.editNodeForm;
       text = text.trim();
       if (!text) {
         this.showErrAlert('edit', '判断条件不能为空');
@@ -306,12 +377,18 @@ export default {
         return;
       }
       if (type === 'condition') {
+        title = title.trim();
+        // if (!title) {
+        //   this.showErrAlert('edit', '条件类型不能为空');
+        //   return;
+        // }
         this.$store.dispatch('nodeOperate', {
           optName: 'editNode',
           payLoad: {
             dicName: this.dicName,
             nowNode: node,
             node: {
+              title,
               text,
             },
           },
@@ -369,6 +446,9 @@ export default {
       } else if (type === 'edit') {
         this.editNodeForm.errMessage = msg;
         this.editNodeForm.showErrAlert = true;
+      } else if (type === 'title') {
+        this.editTitleForm.errMessage = msg;
+        this.editTitleForm.showErrAlert = true;
       }
     },
   },
@@ -398,6 +478,15 @@ export default {
     .mu-icon {
       vertical-align: top;
       margin: 6px;
+    }
+  }
+  h2.node-title {
+    text-align: left;
+    padding: 0 24px;
+    color: #2196f3;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
     }
   }
   .add-node-fab-btn {
