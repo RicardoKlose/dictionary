@@ -23,7 +23,12 @@
       </mu-list-item>
     </mu-list> -->
     <h2 class="node-title" @click="showEditTitleDialog()">{{ getNodeTitle() }}</h2>
-    <mu-data-table stripe border :columns="nodeColumns" :data="children" fit>
+    <mu-data-table
+      class="node-children-table"
+      stripe border
+      :columns="nodeColumns"
+      :data="children"
+      fit>
       <template slot-scope="scope">
         <td>
           <a
@@ -52,7 +57,10 @@
       <mu-icon value="add"></mu-icon>
     </mu-button>
 
-    <mu-dialog title="编辑条件类型" width="360" :open.sync="showEditTitle">
+    <mu-dialog
+      title="编辑条件类型"
+      width="360"
+      :open.sync="showEditTitle">
       请输入条件类型
       <mu-text-field
         placeholder="最多不超过30个字"
@@ -67,7 +75,11 @@
       </mu-flex>
     </mu-dialog>
 
-    <mu-dialog title="添加节点" max-width="75%" :open.sync="showAddNode">
+    <mu-dialog
+      :scrollable="true"
+      title="添加节点"
+      width="75%"
+      :open.sync="showAddNode">
       <mu-form ref="addForm" :model="addNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="type" label="节点类型">
           <mu-radio v-model="addNodeForm.type" value="condition" label="条件"></mu-radio>
@@ -108,7 +120,11 @@
       </mu-flex>
     </mu-dialog>
 
-    <mu-dialog title="编辑节点" max-width="75%" :open.sync="showEditNode">
+    <mu-dialog
+      :scrollable="true"
+      title="编辑节点"
+      width="75%"
+      :open.sync="showEditNode">
       <mu-form ref="editForm" :model="editNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="title" label="条件类型" v-show="editNodeForm.type === 'condition'">
           <mu-text-field v-model="editNodeForm.title" :max-length="30"></mu-text-field>
@@ -145,14 +161,22 @@
       </mu-flex>
     </mu-dialog>
 
-    <mu-dialog title="删除节点" width="360" :open.sync="showRemoveNode">
+    <mu-dialog
+      title="删除节点"
+      max-width="360"
+      :open.sync="showRemoveNode">
       确认删除节点“{{removeNodeForm.text}}”？
       <mu-flex class="edit-dic-buttons" justify-content="end">
         <mu-button @click="cancelRemoveDic">取消</mu-button>
         <mu-button color="primary" @click="confirmRemoveDic">确定</mu-button>
       </mu-flex>
     </mu-dialog>
-    <mu-dialog class="check-node-dialog" title="查看结论" max-width="75%" :open.sync="showCheckNode">
+    <mu-dialog
+      :scrollable="true"
+      class="check-node-dialog"
+      title="查看结论"
+      width="75%"
+      :open.sync="showCheckNode">
       <mu-form :model="checkNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="text" label="判断条件">
           <span>{{checkNodeForm.text}}</span>
@@ -533,6 +557,9 @@ export default {
       user-select: none;
     }
   }
+  .node-children-table {
+    margin-bottom: 100px;
+  }
   .node-click-text {
     line-height: 36px;
     font-size: 14px;
@@ -555,9 +582,12 @@ export default {
     }
   }
   .add-node-fab-btn {
-    position: absolute;
+    position: fixed;
     bottom: 20px;
     right: 20px;
+  }
+  .mu-dialog-scrollable .mu-dialog-body {
+    overflow-x: auto;
   }
   .check-node-dialog {
     .image-with-checker {

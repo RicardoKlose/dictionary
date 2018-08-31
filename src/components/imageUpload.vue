@@ -1,17 +1,16 @@
 <template>
-  <mu-flex class="image-upload" align-items="start">
+  <div
+    class="image-upload"
+    data-mu-loading-color="secendary"
+    data-mu-loading-overlay-color="rgba(0, 0, 0, .7)"
+    v-loading="uploading">
+    <a class="image-upload-btn" flat @click="selectImage()">
+      上传
+    </a>
+    <!-- <i-checker :image-src="imgUrl"></i-checker> -->
     <mu-flex
-      fill
-      justify-content="start"
-      data-mu-loading-color="secendary"
-      data-mu-loading-overlay-color="rgba(0, 0, 0, .7)"
-      v-loading="uploading">
+      justify-content="start">
       <i-checker :image-src="imgUrl"></i-checker>
-    </mu-flex>
-    <mu-flex fill justify-content="end">
-      <a class="image-upload-btn" flat @click="selectImage()">
-        上传
-      </a>
     </mu-flex>
     <input
       ref="imageInput"
@@ -19,7 +18,7 @@
       type="file"
       accept="image/png,image/jpeg,image/gif,image/bmp"
       @change="uploadImage()" />
-  </mu-flex>
+  </div>
 </template>
 
 <script>
