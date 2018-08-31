@@ -30,6 +30,9 @@ module.exports = {
       js: 'never',
       vue: 'never'
     }],
+    "no-restricted-globals": 0,
+    "no-underscore-dangle": 0,
+    'max-len': 0,
     'no-restricted-syntax': [
       'warn',
       {
@@ -51,14 +54,15 @@ module.exports = {
     ],
     // disallow reassignment of function parameters
     // disallow parameter object manipulation except for specific exclusions
-    'no-param-reassign': ['error', {
-      props: true,
-      ignorePropertyModificationsFor: [
-        'state', // for vuex state
-        'acc', // for reduce accumulators
-        'e' // for e.returnvalue
-      ]
-    }],
+    // 'no-param-reassign': ['error', {
+    //   props: true,
+    //   ignorePropertyModificationsFor: [
+    //     'state', // for vuex state
+    //     'acc', // for reduce accumulators
+    //     'e' // for e.returnvalue
+    //   ]
+    // }],
+    'no-param-reassign': 0,
     // allow optionalDependencies
     'import/no-extraneous-dependencies': ['error', {
       optionalDependencies: ['test/unit/index.js']
