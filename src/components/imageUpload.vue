@@ -1,16 +1,25 @@
 <template>
-  <div>
-    <mu-button icon @click="selectImage()" title="上传">
-      <mu-icon value="vertical_align_top"></mu-icon>
-    </mu-button>
+  <mu-flex class="image-upload" align-items="start">
+    <mu-flex
+      fill
+      justify-content="start"
+      data-mu-loading-color="secendary"
+      data-mu-loading-overlay-color="rgba(0, 0, 0, .7)"
+      v-loading="uploading">
+      <i-checker :image-src="imgUrl"></i-checker>
+    </mu-flex>
+    <mu-flex fill justify-content="end">
+      <a class="image-upload-btn" flat @click="selectImage()">
+        上传
+      </a>
+    </mu-flex>
     <input
       ref="imageInput"
       class="hidden-input"
       type="file"
       accept="image/png,image/jpeg,image/gif,image/bmp"
       @change="uploadImage()" />
-    <i-checker :image-src="imgUrl"></i-checker>
-  </div>
+  </mu-flex>
 </template>
 
 <script>
@@ -18,12 +27,14 @@ import imageWithChecker from './imageWithChecker';
 import { calculateBytes } from '../lib/util';
 
 export default {
-  date() {
+  data() {
     return {
       imgUrl: this.src,
       imgTitle: '',
       allowImageUploadFiles: ['.png', '.jpg', '.bmp', '.gif'],
       MAX_IMG_SIZE: 5 * 1024 * 1024,
+      xhr: null,
+      uploading: false,
     };
   },
   computed: {
@@ -60,21 +71,29 @@ export default {
       if (file.size > this.MAX_IMG_SIZE) {
         return this.$emit('prepareError', this.UploadState.SIZELIMITEXCEED);
       }
+      this.uploading = false;
+      if (this.xhr) {
+        this.xhr.onreadystatechange = null;
+        if (this.xhr.readyState === 3) {
+          this.xhr.abort();
+        }
+      }
       this.$emit('uploadBegin');
       const formData = new FormData();
       formData.append('upfile', file);
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/upload_image', true);
-      xhr.send(formData);
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-          if (xhr.status !== 200) {
-            return this.$emit('prepareError', `上传失败：${xhr.status} ${xhr.statusText}`);
+      this.xhr = new XMLHttpRequest();
+      this.xhr.open('POST', '/upload_image', true);
+      this.xhr.send(formData);
+      this.xhr.onreadystatechange = () => {
+        if (this.xhr.readyState === 4) {
+          this.uploading = false;
+          if (this.xhr.status !== 200) {
+            return this.$emit('prepareError', `上传失败：${this.xhr.status} ${this.xhr.statusText}`);
           }
           try {
-            const { result, url } = JSON.parse(xhr.responseText);
+            const { result, url } = JSON.parse(this.xhr.responseText);
             if (result !== 0) {
-              return this.$emit('prepareError', `上传失败：${xhr.responseText}`);
+              return this.$emit('prepareError', `上传失败：${this.xhr.responseText}`);
             }
             this.$emit('success', url);
             this.imgUrl = url;
@@ -85,6 +104,7 @@ export default {
         }
         return null;
       };
+      this.uploading = true;
       return null;
     },
   },
@@ -99,3 +119,30 @@ export default {
   },
 };
 </script>
+
+<style scope lang="less">
+.image-upload {
+  .image-upload-btn {
+    font-size: 16px;
+    line-height: 24px;
+    color: #2196f3;
+    cursor: pointer;
+    min-width: 50px;
+    text-align: center;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  .image-with-checker {
+    img {
+      max-height: 300px;
+      max-width: 100%;
+    }
+  }
+  .hidden-input {
+    visibility: hidden;
+    height: 0;
+    width: 0;
+  }
+}
+</style>
