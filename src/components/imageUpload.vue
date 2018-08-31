@@ -81,6 +81,7 @@ export default {
       this.$emit('uploadBegin');
       const formData = new FormData();
       formData.append('upfile', file);
+      input.value = '';
       this.xhr = new XMLHttpRequest();
       this.xhr.open('POST', '/upload_image', true);
       this.xhr.send(formData);
