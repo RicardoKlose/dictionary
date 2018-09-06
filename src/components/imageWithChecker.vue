@@ -1,6 +1,6 @@
 <template>
   <div class="image-with-checker">
-    <img v-if="srcValid" :src="imageSrc" title="查看大图" @click="checkBigImage()" />
+    <img class="thumbnail" v-if="srcValid" :src="imageSrc" title="查看大图" @click="checkBigImage()" />
     <span v-if="!srcValid">无</span>
     <mu-dialog
       class="check-image-dialog"
@@ -67,7 +67,7 @@ export default {
 
 <style scope lang="less">
 .image-with-checker {
-  img {
+  .thumbnail {
     cursor: pointer;
     max-width: 150px;
     max-height: 150px;

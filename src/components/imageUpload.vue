@@ -64,7 +64,7 @@ export default {
       }
       const fileExt = `.${filePath.split('.').slice(-1)[0].toLowerCase()}`;
       if (!this.allowImageUploadFilesReg.test(fileExt)) {
-        return this.$emit('prepareError', '文件格式错误');
+        return this.$emit('prepareError', `文件格式错误，仅支持${this.allowImageUploadFiles.join('、')}`);
       }
       const file = input.files[0];
       if (file.size > this.MAX_IMG_SIZE) {

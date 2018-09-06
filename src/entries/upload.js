@@ -5,11 +5,10 @@ import axios from 'axios';
 import MuseUI from 'muse-ui';
 import Loading from 'muse-ui-loading';
 import Toast from 'muse-ui-toast';
+import VueClipboard from 'vue-clipboard2';
 import 'muse-ui/dist/muse-ui.css';
 import 'muse-ui-loading/dist/muse-ui-loading.css';
-import App from '../pages/App';
-import router from '../router/index';
-import store from '../store/index';
+import App from '../pages/upload';
 import '../assets/icons/material-icons.css';
 
 Vue.config.productionTip = false;
@@ -26,12 +25,12 @@ Vue.use(Toast, {
   warningIcon: 'priority_high',
   errorIcon: 'warning',
 });
+VueClipboard.config.autoSetContainer = true;
+Vue.use(VueClipboard);
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  router,
-  store,
   components: { App },
   template: '<App/>',
 });

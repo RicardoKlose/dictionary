@@ -59,6 +59,10 @@ module.exports = {
       index: {
         filename: 'index.html',
         template: 'pages/index.html'
+      },
+      upload: {
+        filename: 'upload.html',
+        template: 'pages/upload.html'
       }
     }
   },
@@ -97,6 +101,10 @@ module.exports = {
       index: {
         filename: pathToDist('index.html'),
         template: '!!html-loader!templates/index.html'
+      },
+      upload: {
+        filename: pathToDist('uploadTest.html'),
+        template: '!!html-loader!templates/upload.html'
       }
     }
   }

@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import HelloWorld from '@/components/HelloWorld';
 import dictionaryNode from '@/components/dictionaryNode';
-import store from '../store';
+import store from '../../store/index';
 
 Vue.use(Router);
 
