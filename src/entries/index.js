@@ -4,10 +4,10 @@ import Vue from 'vue';
 import axios from 'axios';
 import MuseUI from 'muse-ui';
 import 'muse-ui/dist/muse-ui.css';
-import App from './App';
-import router from './router';
-import store from './store';
-import './assets/icons/material-icons.css';
+import App from '../pages/App';
+import router from '../router';
+import store from '../store';
+import '../assets/icons/material-icons.css';
 
 Vue.config.productionTip = false;
 Vue.prototype.$http = axios;

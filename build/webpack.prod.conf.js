@@ -13,6 +13,26 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 const env = require('../config/prod.env')
 
+let htmlWebpackPlugins = []
+Object.keys(config.build.htmlEntry).forEach((name) => {
+  const entry = config.build.htmlEntry[name]
+  htmlWebpackPlugins.push(new HtmlWebpackPlugin({
+    filename: entry.filename,
+    template: entry.template,
+    chunks: ['manifest', 'vendor', name],
+    inject: true,
+    minify: {
+      removeComments: true,
+      collapseWhitespace: true,
+      removeAttributeQuotes: true
+      // more options:
+      // https://github.com/kangax/html-minifier#options-quick-reference
+    },
+    // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+    chunksSortMode: 'dependency'
+  }))
+})
+
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
     rules: utils.styleLoaders({
