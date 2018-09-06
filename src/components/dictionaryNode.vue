@@ -22,8 +22,13 @@
         <mu-list-item-title>添加节点</mu-list-item-title>
       </mu-list-item>
     </mu-list> -->
-    <h2 class="node-title" @click="showEditTitleDialog()">{{ thisTitle }}</h2>
-    <mu-data-table stripe border :columns="nodeColumns" :data="children" fit>
+    <h2 class="node-title" @click="showEditTitleDialog()">{{ getNodeTitle() }}</h2>
+    <mu-data-table
+      class="node-children-table"
+      stripe border
+      :columns="nodeColumns"
+      :data="children"
+      fit>
       <template slot-scope="scope">
         <td>
           <a
@@ -52,7 +57,10 @@
       <mu-icon value="add"></mu-icon>
     </mu-button>
 
-    <mu-dialog title="编辑条件类型" width="360" :open.sync="showEditTitle">
+    <mu-dialog
+      title="编辑条件类型"
+      width="360"
+      :open.sync="showEditTitle">
       请输入条件类型
       <mu-text-field
         placeholder="最多不超过30个字"
@@ -67,13 +75,17 @@
       </mu-flex>
     </mu-dialog>
 
-    <mu-dialog title="添加节点" width="360" :open.sync="showAddNode">
+    <mu-dialog
+      :scrollable="true"
+      title="添加节点"
+      width="75%"
+      :open.sync="showAddNode">
       <mu-form ref="addForm" :model="addNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="type" label="节点类型">
           <mu-radio v-model="addNodeForm.type" value="condition" label="条件"></mu-radio>
           <mu-radio v-model="addNodeForm.type" value="result" label="结果"></mu-radio>
         </mu-form-item>
-        <mu-form-item prop="text" label="条件类型" v-show="addNodeForm.type === 'condition'">
+        <mu-form-item prop="title" label="条件类型" v-show="addNodeForm.type === 'condition'">
           <mu-text-field v-model="addNodeForm.title" :max-length="30"></mu-text-field>
         </mu-form-item>
         <mu-form-item prop="text" label="判断条件">
@@ -90,6 +102,14 @@
             :rows="1"
             :rowsMax="3"></mu-text-field>
         </mu-form-item>
+        <mu-form-item prop="img" label="图片" v-show="addNodeForm.type === 'result'">
+          <i-upload
+            :src="addNodeForm.img"
+            @prepareError="uploadAddImageError"
+            @uploadBegin="uploadAddImageStart"
+            @error="uploadAddImageError"
+            @success="uploadAddImageSuccess"></i-upload>
+        </mu-form-item>
       </mu-form>
       <mu-alert color="error" v-show="addNodeForm.showErrAlert">
         <mu-icon left value="warning"></mu-icon>{{addNodeForm.errMessage}}
@@ -100,9 +120,13 @@
       </mu-flex>
     </mu-dialog>
 
-    <mu-dialog title="编辑节点" width="360" :open.sync="showEditNode">
+    <mu-dialog
+      :scrollable="true"
+      title="编辑节点"
+      width="75%"
+      :open.sync="showEditNode">
       <mu-form ref="editForm" :model="editNodeForm" label-position="right" label-width="100">
-        <mu-form-item prop="text" label="条件类型" v-show="editNodeForm.type === 'condition'">
+        <mu-form-item prop="title" label="条件类型" v-show="editNodeForm.type === 'condition'">
           <mu-text-field v-model="editNodeForm.title" :max-length="30"></mu-text-field>
         </mu-form-item>
         <mu-form-item prop="text" label="判断条件">
@@ -119,6 +143,14 @@
             :rows="1"
             :rowsMax="3"></mu-text-field>
         </mu-form-item>
+        <mu-form-item prop="img" label="图片" v-show="editNodeForm.type === 'result'">
+          <i-upload
+            :src="editNodeForm.img"
+            @prepareError="uploadEditImageError"
+            @uploadBegin="uploadEditImageStart"
+            @error="uploadEditImageError"
+            @success="uploadAEditImageSuccess"></i-upload>
+        </mu-form-item>
       </mu-form>
       <mu-alert color="error" v-show="editNodeForm.showErrAlert">
         <mu-icon left value="warning"></mu-icon>{{editNodeForm.errMessage}}
@@ -129,14 +161,22 @@
       </mu-flex>
     </mu-dialog>
 
-    <mu-dialog title="删除节点" width="360" :open.sync="showRemoveNode">
+    <mu-dialog
+      title="删除节点"
+      max-width="360"
+      :open.sync="showRemoveNode">
       确认删除节点“{{removeNodeForm.text}}”？
       <mu-flex class="edit-dic-buttons" justify-content="end">
         <mu-button @click="cancelRemoveDic">取消</mu-button>
         <mu-button color="primary" @click="confirmRemoveDic">确定</mu-button>
       </mu-flex>
     </mu-dialog>
-    <mu-dialog title="查看结论" width="360" :open.sync="showCheckNode">
+    <mu-dialog
+      :scrollable="true"
+      class="check-node-dialog"
+      title="查看结论"
+      width="75%"
+      :open.sync="showCheckNode">
       <mu-form :model="checkNodeForm" label-position="right" label-width="100">
         <mu-form-item prop="text" label="判断条件">
           <span>{{checkNodeForm.text}}</span>
@@ -147,12 +187,18 @@
         <mu-form-item prop="desc" label="描述">
           <p>{{checkNodeForm.desc}}</p>
         </mu-form-item>
+        <mu-form-item prop="img" label="图片">
+          <i-checker :image-src="checkNodeForm.img"></i-checker>
+        </mu-form-item>
       </mu-form>
     </mu-dialog>
   </div>
 </template>
 
 <script>
+import imageUpload from './imageUpload';
+import imageWithChecker from './imageWithChecker';
+
 export default {
   data() {
     return {
@@ -170,6 +216,8 @@ export default {
         text: '',
         name: '',
         desc: '',
+        img: '',
+        imgUploading: false,
         showErrAlert: false,
         errMessage: '',
       },
@@ -180,6 +228,8 @@ export default {
         text: '',
         name: '',
         desc: '',
+        img: '',
+        imgUploading: false,
         showErrAlert: false,
         errMessage: '',
       },
@@ -191,6 +241,7 @@ export default {
         text: '',
         name: '',
         desc: '',
+        img: '',
       },
       nodeColumns: [
         { title: '判断条件' },
@@ -214,9 +265,6 @@ export default {
     thisNode() {
       return this.$store.getters.nowNode(this.dicName);
     },
-    thisTitle() {
-      return this.thisNode.title || '默认条件类型';
-    },
   },
   methods: {
     jumpBackNode(step, disabled = false) {
@@ -226,13 +274,13 @@ export default {
       this.$store.commit('jumpBackNode', { dicName: this.dicName, step });
     },
     enterNode(node) {
-      const { type, text, name, desc } = node;
+      const { type, text, name, desc, img } = node;
       if (type === 'condition') {
         this.$store.commit('enterNode', { dicName: this.dicName, node });
         return;
       }
       this.checkNodeForm = {
-        text, name, desc,
+        text, name, desc, img,
       };
       this.showCheckNode = true;
     },
@@ -254,6 +302,9 @@ export default {
       });
       return exists;
     },
+    getNodeTitle() {
+      return this.thisNode.title ? this.thisNode.title : '默认条件类型';
+    },
     showEditTitleDialog() {
       this.editTitleForm = {
         title: this.thisNode.title,
@@ -269,7 +320,7 @@ export default {
       let { title } = this.editTitleForm;
       title = title.trim();
       if (!title) {
-        this.showErrAlert('title', '条件类型不能为空');
+        this.$toast.error('条件类型不能为空');
         return;
       }
       this.$store.dispatch('nodeOperate', {
@@ -288,30 +339,43 @@ export default {
         text: '',
         name: '',
         desc: '',
+        img: '',
+        imgUploading: false,
         showErrAlert: false,
         errMessage: '',
       };
       this.showAddNode = true;
     },
+    uploadAddImageError(str) {
+      this.$toast.error(str);
+      this.addNodeForm.imgUploading = false;
+    },
+    uploadAddImageStart() {
+      this.addNodeForm.imgUploading = true;
+    },
+    uploadAddImageSuccess(url) {
+      this.addNodeForm.img = url;
+      this.addNodeForm.imgUploading = false;
+    },
     cancelAddDic() {
       this.showAddNode = false;
     },
     confirmAddDic() {
-      const { type } = this.addNodeForm;
+      const { type, img, imgUploading } = this.addNodeForm;
       let { title, text, name, desc } = this.addNodeForm;
       text = text.trim();
       if (!text) {
-        this.showErrAlert('add', '判断条件不能为空');
+        this.$toast.error('判断条件不能为空');
         return;
       }
       if (this.judgeChildrenHasSame('text', text)) {
-        this.showErrAlert('add', '判断条件已存在');
+        this.$toast.error('判断条件已存在');
         return;
       }
       if (type === 'condition') {
         title = title.trim();
         // if (!title) {
-        //   this.showErrAlert('add', '条件类型不能为空');
+        //   this.$toast.error('条件类型不能为空');
         //   return;
         // }
         this.$store.dispatch('nodeOperate', {
@@ -329,11 +393,15 @@ export default {
       name = name.trim();
       desc = desc.trim();
       if (!name) {
-        this.showErrAlert('add', '名称不能为空');
+        this.$toast.error('名称不能为空');
         return;
       }
       if (this.judgeChildrenHasSame('name', name)) {
-        this.showErrAlert('add', '名称已存在');
+        this.$toast.error('名称已存在');
+        return;
+      }
+      if (imgUploading) {
+        this.$toast.error('图片仍在上传中');
         return;
       }
       this.$store.dispatch('nodeOperate', {
@@ -341,14 +409,14 @@ export default {
         payLoad: {
           dicName: this.dicName,
           node: {
-            type, text, name, desc,
+            type, text, name, desc, img,
           },
         },
       });
       this.showAddNode = false;
     },
     showEditNodeDialog(node) {
-      const { title = '', type, text, name = '', desc = '' } = node;
+      const { title = '', type, text, name = '', desc = '', img = '' } = node;
       this.editNodeForm = {
         node,
         type,
@@ -356,30 +424,43 @@ export default {
         text,
         name,
         desc,
+        img,
+        imgUploading: false,
         showErrAlert: false,
         errMessage: '',
       };
       this.showEditNode = true;
     },
+    uploadEditImageError(str) {
+      this.$toast.error(str);
+      this.editNodeForm.imgUploading = false;
+    },
+    uploadEditImageStart() {
+      this.editNodeForm.imgUploading = true;
+    },
+    uploadAEditImageSuccess(url) {
+      this.editNodeForm.img = url;
+      this.editNodeForm.imgUploading = false;
+    },
     cancelEditDic() {
       this.showEditNode = false;
     },
     confirmEditDic() {
-      const { node, type } = this.editNodeForm;
+      const { node, type, img, imgUploading } = this.editNodeForm;
       let { title, text, name, desc } = this.editNodeForm;
       text = text.trim();
       if (!text) {
-        this.showErrAlert('edit', '判断条件不能为空');
+        this.$toast.error('判断条件不能为空');
         return;
       }
       if (this.judgeChildrenHasSame('text', text, node)) {
-        this.showErrAlert('edit', '判断条件已存在');
+        this.$toast.error('判断条件已存在');
         return;
       }
       if (type === 'condition') {
         title = title.trim();
         // if (!title) {
-        //   this.showErrAlert('edit', '条件类型不能为空');
+        //   this.$toast.error('条件类型不能为空');
         //   return;
         // }
         this.$store.dispatch('nodeOperate', {
@@ -399,11 +480,15 @@ export default {
       name = name.trim();
       desc = desc.trim();
       if (!name) {
-        this.showErrAlert('edit', '名称不能为空');
+        this.$toast.error('名称不能为空');
         return;
       }
       if (this.judgeChildrenHasSame('name', name, node)) {
-        this.showErrAlert('edit', '名称已存在');
+        this.$toast.error('名称已存在');
+        return;
+      }
+      if (imgUploading) {
+        this.$toast.error('图片仍在上传中');
         return;
       }
       this.$store.dispatch('nodeOperate', {
@@ -412,7 +497,7 @@ export default {
           dicName: this.dicName,
           nowNode: node,
           node: {
-            text, name, desc,
+            text, name, desc, img,
           },
         },
       });
@@ -452,6 +537,10 @@ export default {
       }
     },
   },
+  components: {
+    'i-upload': imageUpload,
+    'i-checker': imageWithChecker,
+  },
 };
 </script>
 
@@ -467,6 +556,9 @@ export default {
       color: #000000;
       user-select: none;
     }
+  }
+  .node-children-table {
+    margin-bottom: 100px;
   }
   .node-click-text {
     line-height: 36px;
@@ -490,8 +582,22 @@ export default {
     }
   }
   .add-node-fab-btn {
-    position: absolute;
+    position: fixed;
     bottom: 20px;
     right: 20px;
+  }
+  .mu-dialog-scrollable .mu-dialog-body {
+    overflow-x: auto;
+  }
+  .check-node-dialog {
+    .image-with-checker {
+      img {
+        max-height: 300px;
+        max-width: 100%;
+      }
+    }
+    .mu-form-item-content {
+      min-width: 200px;
+    }
   }
 </style>
